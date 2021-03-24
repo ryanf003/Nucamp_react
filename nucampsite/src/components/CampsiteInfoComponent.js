@@ -3,6 +3,8 @@ import { Card, CardImg, CardText, CardBody, Breadcrumb, BreadcrumbItem, Button,
     Modal, ModalHeader, ModalBody, Label  } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import { Control, LocalForm, Errors } from 'react-redux-form';
+import { Loading } from './LoadingComponent';
+import { baseUrl } from '../shared/baseUrl';
 
 const required = val => val && val.length;
 const maxLength = len => val => !val || (val.length <= len);
@@ -26,6 +28,8 @@ class CommentForm extends Component{
     }
 
     handleSubmit(values){
+        this.toggleModal();
+        this.props.addComment(this.props.campsiteId, values.rating, values.author, values.text);
         console.log("Current state is: " + JSON.stringify(values));
         alert("Current state is: " + JSON.stringify(values));
     }
@@ -130,7 +134,7 @@ function RenderCampsite({campsite}){
     return(
         <div className=" col-md-5 m-1">
             <Card>
-                <CardImg top src={campsite.image} alt={campsite.name} />
+                <CardImg top src={baseUrl + campsite.image} alt={campsite.name} />
                 <CardBody>
                     <CardText>{campsite.description}</CardText>
                 </CardBody>
@@ -139,7 +143,7 @@ function RenderCampsite({campsite}){
     )
 }
 
-function RenderComments({comments}){
+function RenderComments({comments, addComment, campsiteId}){
     if (comments){
         return(
             <div className="col-md-5 m-1">
@@ -154,7 +158,7 @@ function RenderComments({comments}){
                         </div>
                     ) 
                 })}
-                <CommentForm /> 
+                <CommentForm campsiteId={campsiteId} addComment={addComment} /> 
             </div>  
         )
     } 
@@ -165,6 +169,27 @@ function RenderComments({comments}){
 
 
 function CampsiteInfo(props) {
+    if(props.isLoading){
+        return (
+            <div className="container">
+                <div className="row">
+                    <Loading />
+                </div>
+            </div>
+        );
+    }
+
+    if(props.errMess){
+        return (
+            <div className="container">
+                <div className="row">
+                    <div className="col">
+                        <h4>{props.errMess}</h4>
+                    </div>
+                </div>
+            </div>
+        );
+    }
     if (props.campsite){
         return (
             <div className="container">
@@ -180,7 +205,11 @@ function CampsiteInfo(props) {
                 </div>
                 <div className="row"> 
                     <RenderCampsite campsite={props.campsite} />
-                    <RenderComments comments={props.comments} />
+                    <RenderComments 
+                        comments={props.comments} 
+                        addComment={props.addComment}
+                        campsiteId={props.campsite.id}
+                        />
                 </div>
             </div>
         );
